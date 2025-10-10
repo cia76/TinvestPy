@@ -54,8 +54,8 @@ def get_candles_from_provider(tp_provider, class_code, security_code, tf, next_b
     :param datetime next_bar_open_utc: Первый возможный бар по UTC
     """
     si = tp_provider.get_symbol_info(class_code, security_code)  # Информация о тикере
-    time_frame, intraday = tp_provider.timeframe_to_tinkoff_timeframe(tf)  # Временной интервал Tinkoff, внутридневной интервал
-    _, td = tp_provider.tinkoff_timeframe_to_timeframe(time_frame)  # Временной интервал для имени файла и максимальный период запроса
+    time_frame, intraday = tp_provider.timeframe_to_tinvest_timeframe(tf)  # Временной интервал Tinkoff, внутридневной интервал
+    _, td = tp_provider.tinvest_timeframe_to_timeframe(time_frame)  # Временной интервал для имени файла и максимальный период запроса
     logger.info(f'Получение истории {class_code}.{security_code} {tf} из Tinkoff')
     todate_utc = datetime.now(UTC)  # Будем получать бары до текущей даты и времени UTC
     new_bars_list = []  # Список новых бар
@@ -90,10 +90,10 @@ def get_candles_from_provider(tp_provider, class_code, security_code, tf, next_b
                     break  # то это последний бар, больше бары обрабатывать не будем
                 dt_utc = datetime.fromisoformat(new_bar['time'][:-1])  # Дата и время начала бара в UTC
                 dt = tp_provider.utc_to_msk_datetime(dt_utc) if intraday else datetime(dt_utc.year, dt_utc.month, dt_utc.day)  # Дату/время переводим из UTC в МСК
-                open_ = tp_provider.tinkoff_price_to_price(class_code, security_code, tp_provider.dict_quotation_to_float(new_bar['open']))
-                high = tp_provider.tinkoff_price_to_price(class_code, security_code, tp_provider.dict_quotation_to_float(new_bar['high']))
-                low = tp_provider.tinkoff_price_to_price(class_code, security_code, tp_provider.dict_quotation_to_float(new_bar['low']))
-                close = tp_provider.tinkoff_price_to_price(class_code, security_code, tp_provider.dict_quotation_to_float(new_bar['close']))
+                open_ = tp_provider.tinvest_price_to_price(class_code, security_code, tp_provider.dict_quotation_to_float(new_bar['open']))
+                high = tp_provider.tinvest_price_to_price(class_code, security_code, tp_provider.dict_quotation_to_float(new_bar['high']))
+                low = tp_provider.tinvest_price_to_price(class_code, security_code, tp_provider.dict_quotation_to_float(new_bar['low']))
+                close = tp_provider.tinvest_price_to_price(class_code, security_code, tp_provider.dict_quotation_to_float(new_bar['close']))
                 volume = int(new_bar['volume'])  # Объем в лотах
                 new_bars_list.append({'datetime': dt, 'open': open_, 'high': high, 'low': low, 'close': close, 'volume': volume})
         next_bar_open_utc = todate_min_utc + timedelta(minutes=1) if intraday else todate_min_utc + timedelta(days=1)  # Смещаем время на возможный следующий бар UTC
@@ -124,7 +124,7 @@ def save_candles_to_file(tp_provider, class_code, security_codes, tf='D1',
     :param bool skip_last_date: Убрать бары на последнюю полученную дату
     :param bool four_price_doji: Оставить бары с дожи 4-х цен
     """
-    _, intraday = tp_provider.timeframe_to_tinkoff_timeframe(tf)  # Временной интервал Tinkoff, внутридневной интервал
+    _, intraday = tp_provider.timeframe_to_tinvest_timeframe(tf)  # Временной интервал Tinkoff, внутридневной интервал
     # tf, td = tp_provider.tinkoff_timeframe_to_timeframe(interval)  # Временной интервал для имени файла и максимальный период запроса
     # _, intraday = tp_provider.timeframe_to_tinkoff_timeframe(tf)  # Внутридневные бары
     for security_code in security_codes:  # Пробегаемся по всем тикерам

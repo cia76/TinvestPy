@@ -1,1 +1,0 @@
-from .TinkoffPy import TinkoffPy

@@ -78,7 +78,7 @@ if __name__ == '__main__':  # Точка входа при запуске это
     # sleep(10)  # Ждем 10 секунд
 
     # Новая лимитная заявка
-    tinkoff_limit_price = tp_provider.price_to_tinkoff_price(class_code, security_code, price * 0.99)  # Лимитная цена на 1% ниже последней цены сделки
+    tinkoff_limit_price = tp_provider.price_to_tinvest_price(class_code, security_code, price * 0.99)  # Лимитная цена на 1% ниже последней цены сделки
     limit_price = tp_provider.float_to_quotation(tinkoff_limit_price)
     logger.info(f'Заявка {class_code}.{security_code} на покупку минимального лота по лимитной цене {tinkoff_limit_price}')
     order_id = str(uuid4())
@@ -99,7 +99,7 @@ if __name__ == '__main__':  # Точка входа при запуске это
     sleep(10)  # Ждем 10 секунд
 
     # Новая стоп заявка
-    tinkoff_stop_price = tp_provider.price_to_tinkoff_price(class_code, security_code, price * 1.01)  # Стоп цена на 1% выше последней цены сделки
+    tinkoff_stop_price = tp_provider.price_to_tinvest_price(class_code, security_code, price * 1.01)  # Стоп цена на 1% выше последней цены сделки
     stop_price = tp_provider.float_to_quotation(tinkoff_stop_price)
     logger.info(f'Заявка {class_code}.{security_code} на покупку минимального лота по стоп цене {tinkoff_stop_price}')
     request = PostStopOrderRequest(instrument_id=si.figi, quantity=1, stop_price=stop_price, direction=STOP_ORDER_DIRECTION_BUY,
