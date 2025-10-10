@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import stoporders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_stoporders__pb2
+from . import stoporders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_stoporders__pb2
 
 GRPC_GENERATED_VERSION = '1.75.0'
 GRPC_VERSION = grpc.__version__

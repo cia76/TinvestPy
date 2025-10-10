@@ -22,11 +22,11 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-from TinvestPy.TinvestPy.grpc import common_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_common__pb2
-from TinvestPy.TinvestPy.grpc import orders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_orders__pb2
-from TinvestPy.TinvestPy.grpc import operations_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_operations__pb2
-from TinvestPy.TinvestPy.grpc import stoporders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_stoporders__pb2
-from TinvestPy.TinvestPy.grpc import users_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_users__pb2
+from . import common_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_common__pb2
+from . import orders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_orders__pb2
+from . import operations_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_operations__pb2
+from . import stoporders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_stoporders__pb2
+from . import users_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_users__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 
 

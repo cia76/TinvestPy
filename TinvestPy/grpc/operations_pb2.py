@@ -23,7 +23,7 @@ _sym_db = _symbol_database.Default()
 
 
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
-from TinvestPy.TinvestPy.grpc import common_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_common__pb2
+from . import common_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_common__pb2
 from google.api import field_behavior_pb2 as google_dot_api_dot_field__behavior__pb2
 
 

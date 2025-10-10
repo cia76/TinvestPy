@@ -3,11 +3,11 @@
 import grpc
 import warnings
 
-import operations_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_operations__pb2
-import orders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_orders__pb2
-import sandbox_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_sandbox__pb2
-import stoporders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_stoporders__pb2
-import users_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_users__pb2
+from . import operations_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_operations__pb2
+from . import orders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_orders__pb2
+from . import sandbox_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_sandbox__pb2
+from . import stoporders_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_stoporders__pb2
+from . import users_pb2 as TinvestPy_dot_TinvestPy_dot_grpc_dot_users__pb2
 
 GRPC_GENERATED_VERSION = '1.75.0'
 GRPC_VERSION = grpc.__version__
