@@ -3,26 +3,26 @@ from threading import Thread  # Запускаем поток подписки
 from datetime import datetime  # Дата и время
 from time import sleep  # Подписка на события по времени
 
-from TinkoffPy import TinkoffPy  # Работа с Tinkoff Invest API из Python
-from TinkoffPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeOrderBookRequest, SubscriptionAction, \
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeOrderBookRequest, SubscriptionAction, \
     OrderBookInstrument, SubscribeLastPriceRequest, LastPriceInstrument, GetOrderBookRequest, GetOrderBookResponse, \
     GetLastPricesRequest, GetLastPricesResponse
 
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
-    logger = logging.getLogger('TinkoffPy.Stream')  # Будем вести лог
-    tp_provider = TinkoffPy()  # Подключаемся ко всем торговым счетам
+    logger = logging.getLogger('TinvestPy.Stream')  # Будем вести лог
+    tp_provider = TinvestPy()  # Подключаемся ко всем торговым счетам
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Формат сообщения
                         datefmt='%d.%m.%Y %H:%M:%S',  # Формат даты
-                        level=logging.DEBUG,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
+                        level=logging.INFO,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
                         handlers=[logging.FileHandler('Stream.log', encoding='utf-8'), logging.StreamHandler()])  # Лог записываем в файл и выводим на консоль
     logging.Formatter.converter = lambda *args: datetime.now(tz=tp_provider.tz_msk).timetuple()  # В логе время указываем по МСК
 
     class_code = 'TQBR'  # Акции ММВБ
     security_code = 'SBER'  # Тикер
     # class_code = 'SPBFUT'  # Фьючерсы
-    # security_code = 'SiH4'  # Формат фьючерса: <Тикер><Месяц экспирации><Последняя цифра года> Месяц экспирации: 3-H, 6-M, 9-U, 12-Z
+    # security_code = 'SiZ4'  # Формат фьючерса: <Тикер><Месяц экспирации><Последняя цифра года> Месяц экспирации: 3-H, 6-M, 9-U, 12-Z
 
     Thread(target=tp_provider.subscriptions_marketdata_handler, name='SubscriptionsMarketdataThread').start()  # Создаем и запускаем поток обработки подписок на биржевую информацию
     si = tp_provider.get_symbol_info(class_code, security_code)  # Спецификация тикера

@@ -2,20 +2,20 @@ import logging  # Выводим лог на консоль и в файл
 from datetime import datetime  # Дата и время
 from math import log10
 
-from TinkoffPy import TinkoffPy  # Работа с Tinkoff Invest API из Python
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
 
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
-    logger = logging.getLogger('TinkoffPy.Ticker')  # Будем вести лог
-    tp_provider = TinkoffPy()  # Подключаемся к торговому счету
+    logger = logging.getLogger('TinvestPy.Ticker')  # Будем вести лог
+    tp_provider = TinvestPy()  # Подключаемся к торговому счету
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Формат сообщения
                         datefmt='%d.%m.%Y %H:%M:%S',  # Формат даты
-                        level=logging.DEBUG,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
+                        level=logging.INFO,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
                         handlers=[logging.FileHandler('Ticker.log', encoding='utf-8'), logging.StreamHandler()])  # Лог записываем в файл и выводим на консоль
     logging.Formatter.converter = lambda *args: datetime.now(tz=tp_provider.tz_msk).timetuple()  # В логе время указываем по МСК
 
-    datanames = ('TQBR.SBER', 'TQBR.VTBR', 'SPBFUT.SiH4', 'SPBFUT.RIH4')  # Кортеж тикеров
+    datanames = ('TQBR.SBER', 'TQBR.VTBR', 'SPBFUT.SiZ5', 'SPBFUT.RIZ5')  # Кортеж тикеров
 
     for dataname in datanames:  # Пробегаемся по всем тикерам
         class_code, security_code = tp_provider.dataname_to_class_code_symbol(dataname)  # Код режима торгов и тикер

@@ -4,10 +4,10 @@ from datetime import datetime  # Дата и время
 from time import sleep  # Задержка в секундах перед выполнением операций
 from uuid import uuid4
 
-from TinkoffPy import TinkoffPy  # Работа с Tinkoff Invest API из Python
-from TinkoffPy.grpc.marketdata_pb2 import LastPrice, MarketDataRequest, SubscribeLastPriceRequest, SubscriptionAction, LastPriceInstrument
-from TinkoffPy.grpc.orders_pb2 import ORDER_DIRECTION_BUY, ORDER_DIRECTION_SELL, PostOrderRequest, ORDER_TYPE_MARKET, PostOrderResponse, ORDER_TYPE_LIMIT, CancelOrderRequest, CancelOrderResponse
-from TinkoffPy.grpc.stoporders_pb2 import PostStopOrderRequest, StopOrderExpirationType, STOP_ORDER_DIRECTION_BUY, StopOrderType, PostStopOrderResponse, CancelStopOrderRequest, CancelStopOrderResponse
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy.grpc.marketdata_pb2 import LastPrice, MarketDataRequest, SubscribeLastPriceRequest, SubscriptionAction, LastPriceInstrument
+from TinvestPy.grpc.orders_pb2 import ORDER_DIRECTION_BUY, ORDER_DIRECTION_SELL, PostOrderRequest, ORDER_TYPE_MARKET, PostOrderResponse, ORDER_TYPE_LIMIT, CancelOrderRequest, CancelOrderResponse
+from TinvestPy.grpc.stoporders_pb2 import PostStopOrderRequest, StopOrderExpirationType, STOP_ORDER_DIRECTION_BUY, StopOrderType, PostStopOrderResponse, CancelStopOrderRequest, CancelStopOrderResponse
 
 
 price: float = 0  # Последняя цена сделки по тикеру
@@ -20,8 +20,8 @@ def on_last_price(last_price: LastPrice):
 
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
-    logger = logging.getLogger('TinkoffPy.Transactions')  # Будем вести лог
-    tp_provider = TinkoffPy()  # Подключаемся ко всем торговым счетам
+    logger = logging.getLogger('TinvestPy.Transactions')  # Будем вести лог
+    tp_provider = TinvestPy()  # Подключаемся ко всем торговым счетам
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Формат сообщения
                         datefmt='%d.%m.%Y %H:%M:%S',  # Формат даты
@@ -32,7 +32,7 @@ if __name__ == '__main__':  # Точка входа при запуске это
     class_code = 'TQBR'  # Акции ММВБ
     security_code = 'SBER'  # Тикер
     # class_code = 'SPBFUT'  # Фьючерсы
-    # security_code = 'SiH4'  # Формат фьючерса: <Тикер><Месяц экспирации><Последняя цифра года> Месяц экспирации: 3-H, 6-M, 9-U, 12-Z
+    # security_code = 'SiZ5'  # Формат фьючерса: <Тикер><Месяц экспирации><Последняя цифра года> Месяц экспирации: 3-H, 6-M, 9-U, 12-Z
 
     si = tp_provider.get_symbol_info(class_code, security_code)  # Спецификация тикера
     min_step = tp_provider.quotation_to_float(si.min_price_increment)  # Шаг цены

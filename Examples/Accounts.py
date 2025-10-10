@@ -1,19 +1,19 @@
 import logging  # Выводим лог на консоль и в файл
 from datetime import datetime  # Дата и время
 
-from TinkoffPy import TinkoffPy  # Работа с Tinkoff Invest API из Python
-from TinkoffPy.grpc.operations_pb2 import PortfolioRequest, PortfolioResponse
-from TinkoffPy.grpc.orders_pb2 import GetOrdersRequest, GetOrdersResponse, OrderDirection
-from TinkoffPy.grpc.stoporders_pb2 import GetStopOrdersRequest, GetStopOrdersResponse, StopOrderDirection
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy.grpc.operations_pb2 import PortfolioRequest, PortfolioResponse
+from TinvestPy.grpc.orders_pb2 import GetOrdersRequest, GetOrdersResponse, OrderDirection
+from TinvestPy.grpc.stoporders_pb2 import GetStopOrdersRequest, GetStopOrdersResponse, StopOrderDirection
 
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
-    logger = logging.getLogger('TinkoffPy.Accounts')  # Будем вести лог
-    tp_provider = TinkoffPy()  # Подключаемся ко всем торговым счетам
+    logger = logging.getLogger('TinvestPy.Accounts')  # Будем вести лог
+    tp_provider = TinvestPy()  # Подключаемся ко всем торговым счетам
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Формат сообщения
                         datefmt='%d.%m.%Y %H:%M:%S',  # Формат даты
-                        level=logging.DEBUG,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
+                        level=logging.INFO,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
                         handlers=[logging.FileHandler('Accounts.log', encoding='utf-8'), logging.StreamHandler()])  # Лог записываем в файл и выводим на консоль
     logging.Formatter.converter = lambda *args: datetime.now(tz=tp_provider.tz_msk).timetuple()  # В логе время указываем по МСК
 

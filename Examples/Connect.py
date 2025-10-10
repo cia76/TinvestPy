@@ -2,25 +2,25 @@ import logging  # Выводим лог на консоль и в файл
 from threading import Thread  # Запускаем поток подписки
 from datetime import datetime
 
-from TinkoffPy import TinkoffPy  # Работа с Tinkoff Invest API из Python
-from TinkoffPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeCandlesRequest, SubscriptionAction, CandleInstrument, SubscriptionInterval
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeCandlesRequest, SubscriptionAction, CandleInstrument, SubscriptionInterval
 
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
-    logger = logging.getLogger('TinkoffPy.Connect')  # Будем вести лог
-    tp_provider = TinkoffPy()  # Подключаемся ко всем торговым счетам
-    # tp_provider = TinkoffPy(demo=True)  # Подключаемся к демо счетам
+    logger = logging.getLogger('TinvestPy.Connect')  # Будем вести лог
+    tp_provider = TinvestPy()  # Подключаемся ко всем торговым счетам
+    # tp_provider = TinvestPy(demo=True)  # Подключаемся к демо счетам
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Формат сообщения
                         datefmt='%d.%m.%Y %H:%M:%S',  # Формат даты
-                        level=logging.DEBUG,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
+                        level=logging.INFO,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
                         handlers=[logging.FileHandler('Connect.log', encoding='utf-8'), logging.StreamHandler()])  # Лог записываем в файл и выводим на консоль
     logging.Formatter.converter = lambda *args: datetime.now(tz=tp_provider.tz_msk).timetuple()  # В логе время указываем по МСК
 
     class_code = 'TQBR'  # Акции ММВБ
     security_code = 'SBER'  # Тикер
     # class_code = 'SPBFUT'  # Фьючерсы
-    # security_code = 'SiU4'  # Формат фьючерса: <Тикер><Месяц экспирации><Последняя цифра года> Месяц экспирации: 3-H, 6-M, 9-U, 12-Z
+    # security_code = 'SiZ5'  # Формат фьючерса: <Тикер><Месяц экспирации><Последняя цифра года> Месяц экспирации: 3-H, 6-M, 9-U, 12-Z
 
     # Проверяем работу запрос/ответ
     logger.info(f'Данные тикера {class_code}.{security_code}')  # Время на сервере приходит в подписках. Поэтому, запросим данные тикера

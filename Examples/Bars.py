@@ -5,12 +5,12 @@ import os.path
 
 import pandas as pd
 
-from TinkoffPy import TinkoffPy  # Работа с Tinkoff Invest API из Python
-from TinkoffPy.grpc.marketdata_pb2 import GetCandlesRequest, GetCandlesResponse
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy.grpc.marketdata_pb2 import GetCandlesRequest, GetCandlesResponse
 from google.protobuf.json_format import MessageToDict
 
 
-logger = logging.getLogger('TinkoffPy.Bars')  # Будем вести лог. Определяем здесь, т.к. возможен внешний вызов ф-ии
+logger = logging.getLogger('TinvestPy.Bars')  # Будем вести лог. Определяем здесь, т.к. возможен внешний вызов ф-ии
 datapath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'Data', 'Tinkoff', '')  # Путь сохранения файла истории
 delimiter = '\t'  # Разделитель значений в файле истории. По умолчанию табуляция
 dt_format = '%d.%m.%Y %H:%M'  # Формат представления даты и времени в файле истории. По умолчанию русский формат
@@ -174,11 +174,11 @@ def save_candles_to_file(tp_provider, class_code, security_codes, tf='D1',
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
     start_time = time()  # Время начала запуска скрипта
-    tp_provider = TinkoffPy()  # Подключаемся ко всем торговым счетам
+    tp_provider = TinvestPy()  # Подключаемся ко всем торговым счетам
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Формат сообщения
                         datefmt='%d.%m.%Y %H:%M:%S',  # Формат даты
-                        level=logging.DEBUG,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
+                        level=logging.INFO,  # Уровень логируемых событий NOTSET/DEBUG/INFO/WARNING/ERROR/CRITICAL
                         handlers=[logging.FileHandler('Bars.log', encoding='utf-8'), logging.StreamHandler()])  # Лог записываем в файл и выводим на консоль
     logging.Formatter.converter = lambda *args: datetime.now(tz=tp_provider.tz_msk).timetuple()  # В логе время указываем по МСК
 
