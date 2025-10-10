@@ -31,8 +31,8 @@ class TinvestPy:
     Генерация кода в папку grpc осуществлена из proto контрактов: https://github.com/RussianInvestments/investAPI/tree/main/src/docs/contracts
     """
     tz_msk = timezone('Europe/Moscow')  # Время UTC будем приводить к московскому времени
-    server = 'invest-public-api.tbank.ru:443'  # Торговый сервер
-    server_demo = 'sandbox-invest-public-api.tbank.ru:443'  # Демо сервер (песочница)
+    server = 'invest-public-api.tinkoff.ru:443'  # Торговый сервер
+    server_demo = 'sandbox-invest-public-api.tinkoff.ru:443'  # Демо сервер (песочница)
     currency: operations_pb2.PortfolioRequest.CurrencyRequest = operations_pb2.PortfolioRequest.CurrencyRequest.RUB  # Суммы будем получать в российских рублях
     logger = logging.getLogger('TinvestPy')  # Будем вести лог
 
