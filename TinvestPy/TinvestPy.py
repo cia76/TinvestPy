@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, UTC
 import logging  # Выводим лог на консоль и в файл
 import os
 import pickle  # Хранение торгового токена
-from typing import Union  # Объединение типов
 from time import sleep
 from queue import SimpleQueue  # Очередь подписок/отписок
 
@@ -110,10 +109,8 @@ class TinvestPy:
 
     # Подписки
 
-    def default_handler(self, event: Union[
-        marketdata_pb2.Candle, marketdata_pb2.Trade, marketdata_pb2.OrderBook, marketdata_pb2.TradingStatus,
-        marketdata_pb2.LastPrice, operations_pb2.PortfolioResponse, operations_pb2.PositionData, orders_pb2.OrderTrades
-    ]):
+    def default_handler(self, event: marketdata_pb2.Candle | marketdata_pb2.Trade | marketdata_pb2.OrderBook | marketdata_pb2.TradingStatus |
+                                     marketdata_pb2.LastPrice | operations_pb2.PortfolioResponse | operations_pb2.PositionData | orders_pb2.OrderTrades):
         """Пустой обработчик события по умолчанию. Его можно заменить на пользовательский"""
         pass
 
@@ -259,7 +256,7 @@ class TinvestPy:
         """
         return f'{class_code}.{symbol}'
 
-    def get_symbol_info(self, class_code, symbol, reload=False) -> Union[instruments_pb2.Instrument, None]:
+    def get_symbol_info(self, class_code, symbol, reload=False) -> instruments_pb2.Instrument | None:
         """Спецификация тикера
 
         :param str class_code: : Код режима торгов
@@ -276,7 +273,7 @@ class TinvestPy:
             self.symbols[(class_code, symbol)] = response.instrument  # Заносим информацию о тикере в справочник
         return self.symbols[(class_code, symbol)]  # Возвращаем значение из справочника
 
-    def figi_to_symbol_info(self, figi) -> Union[instruments_pb2.Instrument, None]:
+    def figi_to_symbol_info(self, figi) -> instruments_pb2.Instrument | None:
         """Получение информации тикера по уникальному коду
 
         :param str figi: : Уникальный код тикера
