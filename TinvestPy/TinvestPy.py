@@ -79,6 +79,7 @@ class TinvestPy:
 
         self.stub_orders_stream = OrdersStreamServiceStub(self.channel)  # Заявки и сделки
         self.orders_thread = None  # Поток обработки событий
+        self.on_order_state = self.default_handler  # Заявки
         self.on_order_trades = self.default_handler  # Сделки по заявке
 
         self.time_delta = timedelta(seconds=3)  # Разница между локальным временем и временем торгового сервера с учетом временнОй зоны
@@ -199,6 +200,21 @@ class TinvestPy:
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_positions_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
+        except RpcError:  # При закрытии канала попадем на эту ошибку (grpc._channel._MultiThreadedRendezvous)
+            pass  # Все в порядке, ничего делать не нужно
+
+    def subscriptions_order_state_handler(self, account_ids):
+        """Поток обработки подписок на заявки"""
+        try:
+            for event in self.stub_orders_stream.OrderStateStream(request=orders_pb2.OrderStateStreamRequest(accounts=account_ids, ping_delay_millis=1000), metadata=self.metadata):  # Пробегаемся по значениям подписок до закрытия канала
+                e: orders_pb2.OrderStateStreamResponse = event  # Приводим пришедшее значение к подписке
+                if e.order_state != orders_pb2.OrderState():  # Заявка
+                    self.logger.debug(f'subscriptions_trades_handler: Пришла заявка {e.order_state}')
+                    self.on_order_state(e.order_state)
+                if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
+                    dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
+                    self.logger.debug(f'subscriptions_trades_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
+                    self.set_time_delta(e.ping.time)  # Обновляем разницу между локальным временем и временем сервера
         except RpcError:  # При закрытии канала попадем на эту ошибку (grpc._channel._MultiThreadedRendezvous)
             pass  # Все в порядке, ничего делать не нужно
 
