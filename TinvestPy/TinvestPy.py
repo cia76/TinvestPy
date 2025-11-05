@@ -8,17 +8,17 @@ from queue import SimpleQueue  # Очередь подписок/отписок
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from .grpc import common_pb2
-from .grpc import users_pb2  # Структуры сервиса счетов https://russianinvestments.github.io/investAPI/users/
-from .grpc.users_pb2_grpc import UsersServiceStub  # Методы сервиса счетов
-from .grpc import instruments_pb2  # Структуры сервиса инструментов https://russianinvestments.github.io/investAPI/instruments/
-from .grpc.instruments_pb2_grpc import InstrumentsServiceStub  # Методы сервиса инструментов
-from .grpc import orders_pb2  # Структуры сервиса ордеров https://russianinvestments.github.io/investAPI/orders/
-from .grpc.orders_pb2_grpc import OrdersServiceStub, OrdersStreamServiceStub  # Методы сервиса ордеров. Поток сделок и поручений пользователя
-from .grpc import operations_pb2  # Структуры сервиса операций https://russianinvestments.github.io/investAPI/operations/
-from .grpc.operations_pb2_grpc import OperationsServiceStub, OperationsStreamServiceStub  # Методы сервиса операций. Поток операций
-from .grpc import marketdata_pb2  # Структуры сервиса котировок https://russianinvestments.github.io/investAPI/marketdata/
-from .grpc.marketdata_pb2_grpc import MarketDataServiceStub, MarketDataStreamServiceStub  # Методы сервиса котировок. Поток котировок
-from .grpc.stoporders_pb2_grpc import StopOrdersServiceStub  # Методы сервиса стоп-ордеров https://russianinvestments.github.io/investAPI/stoporders/
+from .grpc import instruments_pb2
+from .grpc.instruments_pb2_grpc import InstrumentsServiceStub  # https://developer.tbank.ru/invest/api/instruments-service
+from .grpc import marketdata_pb2
+from .grpc.marketdata_pb2_grpc import MarketDataServiceStub, MarketDataStreamServiceStub  # https://developer.tbank.ru/invest/api/market-data-service
+from .grpc import operations_pb2
+from .grpc.operations_pb2_grpc import OperationsServiceStub, OperationsStreamServiceStub  # https://developer.tbank.ru/invest/api/operations-service
+from .grpc import orders_pb2
+from .grpc.orders_pb2_grpc import OrdersServiceStub, OrdersStreamServiceStub  # https://developer.tbank.ru/invest/api/orders-service
+from .grpc.stoporders_pb2_grpc import StopOrdersServiceStub  # https://developer.tbank.ru/invest/api/stop-orders-service
+from .grpc import users_pb2
+from .grpc.users_pb2_grpc import UsersServiceStub  # https://developer.tbank.ru/invest/api/users-service
 
 from pytz import timezone, utc  # Работаем с временнОй зоной и UTC
 from grpc import ssl_channel_credentials, secure_channel, RpcError, StatusCode  # Защищенный канал
@@ -26,7 +26,7 @@ from grpc import ssl_channel_credentials, secure_channel, RpcError, StatusCode  
 
 # noinspection PyProtectedMember
 class TinvestPy:
-    """Работа с T-Invest API https://russianinvestments.github.io/investAPI/ из Python
+    """Работа с T-Invest API https://developer.tbank.ru/invest/api из Python
     Генерация кода в папку grpc осуществлена из proto контрактов: https://github.com/RussianInvestments/investAPI/tree/main/src/docs/contracts
     """
     tz_msk = timezone('Europe/Moscow')  # Время UTC будем приводить к московскому времени
