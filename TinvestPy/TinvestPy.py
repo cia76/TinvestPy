@@ -578,7 +578,8 @@ class TinvestPy:
         :param Timestamp timestamp: Время Google UTC Timestamp
         :return: Московское время
         """
-        return self.utc_to_msk_datetime(datetime.fromtimestamp(timestamp.seconds + timestamp.nanos / 1_000_000_000))
+        dt_utc = datetime.fromtimestamp(timestamp.seconds + timestamp.nanos / 1_000_000_000, UTC)  # Переводим кол-во секунд, прошедших с 01.01.1970 в UTC
+        return self.utc_to_msk_datetime(dt_utc)  # Переводим время из UTC в московское
 
     def msk_datetime_to_timestamp(self, dt) -> int:
         """Перевод московского времени в кол-во секунд, прошедших с 01.01.1970 00:00 UTC
