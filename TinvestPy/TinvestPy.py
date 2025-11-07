@@ -572,15 +572,6 @@ class TinvestPy:
             result += int(dict_quotation['nano']) / 1_000_000_000  # то добавляем ее в значение
         return result
 
-    def timestamp_to_msk_datetime(self, timestamp) -> datetime:
-        """Перевод времени из Google UTC Timestamp в московское
-
-        :param Timestamp timestamp: Время Google UTC Timestamp
-        :return: Московское время
-        """
-        dt_utc = datetime.fromtimestamp(timestamp.seconds + timestamp.nanos / 1_000_000_000, UTC)  # Переводим кол-во секунд, прошедших с 01.01.1970 в UTC
-        return self.utc_to_msk_datetime(dt_utc)  # Переводим время из UTC в московское
-
     def msk_datetime_to_timestamp(self, dt) -> int:
         """Перевод московского времени в кол-во секунд, прошедших с 01.01.1970 00:00 UTC
 
@@ -589,6 +580,15 @@ class TinvestPy:
         """
         dt_msk = self.tz_msk.localize(dt)  # Заданное время ставим в зону МСК
         return int(dt_msk.timestamp())  # Переводим в кол-во секунд, прошедших с 01.01.1970 в UTC
+
+    def timestamp_to_msk_datetime(self, timestamp) -> datetime:
+        """Перевод времени из Google UTC Timestamp в московское
+
+        :param Timestamp timestamp: Время Google UTC Timestamp
+        :return: Московское время
+        """
+        dt_utc = datetime.fromtimestamp(timestamp.seconds + timestamp.nanos / 1_000_000_000, UTC)  # Переводим кол-во секунд, прошедших с 01.01.1970 в UTC
+        return self.utc_to_msk_datetime(dt_utc)  # Переводим время из UTC в московское
 
     def msk_datetime_to_google_timestamp(self, dt) -> Timestamp:
         """Перевод московского времени в Google UTC Timestamp
