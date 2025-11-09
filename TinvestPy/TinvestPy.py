@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, UTC
 import logging  # Выводим лог на консоль и в файл
 import os
 import pickle  # Хранение торгового токена
+from typing import Any  # Любой тип
 from time import sleep
 from queue import SimpleQueue  # Очередь подписок/отписок
 
@@ -65,22 +66,22 @@ class TinvestPy:
         self.stub_marketdata_stream = MarketDataStreamServiceStub(self.channel)  # Биржевая информация
         self.subscription_marketdata_queue: SimpleQueue[marketdata_pb2.MarketDataRequest] = SimpleQueue()  # Буфер команд
         self.marketdata_thread = None  # Поток обработки событий
-        self.on_candle = self.default_handler  # Свеча
-        self.on_trade = self.default_handler  # Сделки
-        self.on_orderbook = self.default_handler  # Стакан
-        self.on_trading_status = self.default_handler  # Торговый статус
-        self.on_last_price = self.default_handler  # Цена последней сделки
+        self.on_candle = Event()  # Свеча
+        self.on_trade = Event()  # Сделки
+        self.on_orderbook = Event()  # Стакан
+        self.on_trading_status = Event()  # Торговый статус
+        self.on_last_price = Event()  # Цена последней сделки
 
         self.stub_operations_stream = OperationsStreamServiceStub(self.channel)  # Операции
         self.portfolio_thread = None  # Поток обработки событий портфеля
         self.position_thread = None  # Поток обработки событий позиций
-        self.on_portfolio = self.default_handler  # Портфель
-        self.on_position = self.default_handler  # Позиция
+        self.on_portfolio = Event()  # Портфель
+        self.on_position = Event()  # Позиция
 
         self.stub_orders_stream = OrdersStreamServiceStub(self.channel)  # Заявки и сделки
         self.orders_thread = None  # Поток обработки событий
-        self.on_order_state = self.default_handler  # Заявки
-        self.on_order_trades = self.default_handler  # Сделки по заявке
+        self.on_order_state = Event()  # Заявки
+        self.on_order_trades = Event()  # Сделки по заявке
 
         self.time_delta = timedelta(seconds=3)  # Разница между локальным временем и временем торгового сервера с учетом временнОй зоны
         response: users_pb2.GetAccountsResponse = self.call_function(self.stub_users.GetAccounts, users_pb2.GetAccountsRequest())  # Запрос всех счетов
@@ -110,11 +111,6 @@ class TinvestPy:
 
     # Подписки
 
-    def default_handler(self, event: marketdata_pb2.Candle | marketdata_pb2.Trade | marketdata_pb2.OrderBook | marketdata_pb2.TradingStatus |
-                                     marketdata_pb2.LastPrice | operations_pb2.PortfolioResponse | operations_pb2.PositionData | orders_pb2.OrderTrades):
-        """Пустой обработчик события по умолчанию. Его можно заменить на пользовательский"""
-        pass
-
     def request_marketdata_iterator(self):
         """Генератор запросов на подписку/отписку биржевой информации"""
         while True:  # Будем пытаться читать из очереди до закрытия канала
@@ -128,19 +124,19 @@ class TinvestPy:
                 e: marketdata_pb2.MarketDataResponse = event  # Приводим пришедшее значение к подписке
                 if e.candle != marketdata_pb2.Candle():  # Свеча
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришел бар {e.candle}')
-                    self.on_candle(e.candle)
+                    self.on_candle.trigger(e.candle)
                 if e.trade != marketdata_pb2.Trade():  # Сделки
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришла сделка {e.trade}')
-                    self.on_trade(e.trade)
+                    self.on_trade.trigger(e.trade)
                 if e.orderbook != marketdata_pb2.OrderBook():  # Стакан
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришел стакан {e.orderbook}')
-                    self.on_orderbook(e.orderbook)
+                    self.on_orderbook.trigger(e.orderbook)
                 if e.trading_status != marketdata_pb2.TradingStatus():  # Торговый статус
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришел торговый статус {e.trading_status}')
-                    self.on_trading_status(e.trading_status)
+                    self.on_trading_status.trigger(e.trading_status)
                 if e.last_price != marketdata_pb2.LastPrice():  # Цена последней сделки
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришла цена последней сделки {e.last_price}')
-                    self.on_last_price(e.last_price)
+                    self.on_last_price.trigger(e.last_price)
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
@@ -155,19 +151,19 @@ class TinvestPy:
                 e: marketdata_pb2.MarketDataResponse = event  # Приводим пришедшее значение к подписке
                 if e.candle != marketdata_pb2.Candle():  # Свеча
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришел бар {e.candle}')
-                    self.on_candle(e.candle)
+                    self.on_candle.trigger(e.candle)
                 if e.trade != marketdata_pb2.Trade():  # Сделки
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришла сделка {e.trade}')
-                    self.on_trade(e.trade)
+                    self.on_trade.trigger(e.trade)
                 if e.orderbook != marketdata_pb2.OrderBook():  # Стакан
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришел стакан {e.orderbook}')
-                    self.on_orderbook(e.orderbook)
+                    self.on_orderbook.trigger(e.orderbook)
                 if e.trading_status != marketdata_pb2.TradingStatus():  # Торговый статус
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришел торговый статус {e.trading_status}')
-                    self.on_trading_status(e.trading_status)
+                    self.on_trading_status.trigger(e.trading_status)
                 if e.last_price != marketdata_pb2.LastPrice():  # Цена последней сделки
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришла цена последней сделки {e.last_price}')
-                    self.on_last_price(e.last_price)
+                    self.on_last_price.trigger(e.last_price)
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
@@ -182,7 +178,7 @@ class TinvestPy:
                 e: operations_pb2.PortfolioStreamResponse = event  # Приводим пришедшее значение к подписке
                 if e.portfolio != operations_pb2.PortfolioResponse():  # Портфель
                     self.logger.debug(f'subscriptions_portfolio_handler: Пришли портфели {e.subscriptions.accounts}')
-                    self.on_portfolio(e.portfolio)
+                    self.on_portfolio.trigger(e.portfolio)
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_portfolio_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
@@ -196,7 +192,7 @@ class TinvestPy:
                 e: operations_pb2.PositionsStreamResponse = event  # Приводим пришедшее значение к подписке
                 if e.position != operations_pb2.PositionData():  # Позиция
                     self.logger.debug(f'subscriptions_positions_handler: Пришла позиция {e.position}')
-                    self.on_position(e.position)
+                    self.on_position.trigger(e.position)
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_positions_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
@@ -210,7 +206,7 @@ class TinvestPy:
                 e: orders_pb2.OrderStateStreamResponse = event  # Приводим пришедшее значение к подписке
                 if e.order_state != orders_pb2.OrderState():  # Заявка
                     self.logger.debug(f'subscriptions_trades_handler: Пришла заявка {e.order_state}')
-                    self.on_order_state(e.order_state)
+                    self.on_order_state.trigger(e.order_state)
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_trades_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
@@ -225,7 +221,7 @@ class TinvestPy:
                 e: orders_pb2.TradesStreamResponse = event  # Приводим пришедшее значение к подписке
                 if e.order_trades != orders_pb2.OrderTrades():  # Сделки по заявке
                     self.logger.debug(f'subscriptions_trades_handler: Пришли сделки по заявке {e.order_trades}')
-                    self.on_order_trades(e.order_trades)
+                    self.on_order_trades.trigger(e.order_trades)
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_trades_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
@@ -627,3 +623,22 @@ class TinvestPy:
         :param Timestamp timestamp: Текущее время на сервере в формате Google UTC Timestamp
         """
         self.time_delta = datetime.fromtimestamp(timestamp.seconds, UTC) - datetime.now(UTC)
+
+
+class Event:
+    """Событие с подпиской / отменой подписки"""
+    def __init__(self):
+        self._callbacks: set[Any] = set()  # Избегаем дубликатов функций при помощи set
+
+    def subscribe(self, callback) -> None:
+        """Подписаться на событие"""
+        self._callbacks.add(callback)  # Добавляем функцию в список
+
+    def unsubscribe(self, callback) -> None:
+        """Отписаться от события"""
+        self._callbacks.discard(callback)  # Удаляем функцию из списка. Если функции нет в списке, то не будет ошибки
+
+    def trigger(self, *args, **kwargs) -> None:
+        """Вызвать событие"""
+        for callback in list(self._callbacks):  # Пробегаемся по копии списка, чтобы избежать исключения при удалении
+            callback(*args, **kwargs)  # Вызываем функцию
