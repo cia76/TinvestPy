@@ -9,6 +9,17 @@ from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeOrderBookR
     GetLastPricesRequest, GetLastPricesResponse
 
 
+def _on_order_book(order_book):
+    logger.info(f'Стакан - '
+                f'figi = {order_book.instrument_id} '
+                f'ask = {tp_provider.quotation_to_float(order_book.asks[0].price)} '
+                f'bid = {tp_provider.quotation_to_float(order_book.bids[0].price)}')
+
+
+def _on_last_price(last_price):
+    logger.info(f'Котировка - {tp_provider.quotation_to_float(last_price.price)}')
+
+
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
     logger = logging.getLogger('TinvestPy.Stream')  # Будем вести лог
     tp_provider = TinvestPy()  # Подключаемся ко всем торговым счетам
@@ -37,9 +48,7 @@ if __name__ == '__main__':  # Точка входа при запуске это
     sleep_secs = 5  # Кол-во секунд получения стакана
     logger.info(f'{sleep_secs} секунд стакана {class_code}.{security_code}')
     # noinspection PyShadowingNames
-    tp_provider.on_orderbook = lambda order_book: logger.info(
-        f'ask = {tp_provider.quotation_to_float(order_book.asks[0].price)} '
-        f'bid = {tp_provider.quotation_to_float(order_book.bids[0].price)}')  # Обработчик события прихода подписки на стакан
+    tp_provider.on_orderbook.subscribe(_on_order_book)  # Подписываемся на стакан
     tp_provider.subscription_marketdata_queue.put(  # Ставим в буфер команд подписки на биржевую информацию
         MarketDataRequest(subscribe_order_book_request=SubscribeOrderBookRequest(
             subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,  # запрос подписки
@@ -51,7 +60,7 @@ if __name__ == '__main__':  # Точка входа при запуске это
             subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_UNSUBSCRIBE,  # запрос отмены подписки
             instruments=(OrderBookInstrument(depth=10, instrument_id=si.figi),))))  # с глубиной стакана 10
     logger.info(f'Подписка на стакан {class_code}.{security_code} отменена')  # Отписываеся от стакана
-    tp_provider.on_orderbook = tp_provider.default_handler  # Возвращаем обработчик по умолчанию
+    tp_provider.on_orderbook.unsubscribe(_on_order_book)  # Отменяем подписку на стакан
 
     # Котировки
     logger.info(f'Текущие котировки {class_code}.{security_code}')
@@ -61,7 +70,7 @@ if __name__ == '__main__':  # Точка входа при запуске это
 
     sleep_secs = 5  # Кол-во секунд получения котировок
     logger.info(f'{sleep_secs} секунд котировок {class_code}.{security_code}')
-    tp_provider.on_last_price = lambda last_price: logger.info(f'Цена последней сделки по тикеру {class_code}.{security_code} = {tp_provider.quotation_to_float(last_price.price)}')  # Цена последней сделки
+    tp_provider.on_last_price.subscribe(_on_last_price)  # Подписываемся на котировки
     tp_provider.subscription_marketdata_queue.put(  # Ставим в буфер команд подписки на биржевую информацию
         MarketDataRequest(subscribe_last_price_request=SubscribeLastPriceRequest(
             subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,  # запрос подписки
@@ -73,7 +82,7 @@ if __name__ == '__main__':  # Точка входа при запуске это
             subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_UNSUBSCRIBE,  # запрос отмены подписки
             instruments=(LastPriceInstrument(instrument_id=si.figi),))))  # на последнюю цену
     logger.info(f'Подписка на котировки {class_code}.{security_code} отменена')  # Отписываеся от котировок
-    tp_provider.on_last_price = tp_provider.default_handler  # Возвращаем обработчик по умолчанию
+    tp_provider.on_last_price.unsubscribe(_on_last_price)  # Отменяем подписку на котировки
 
     # Выход
     tp_provider.close_channel()  # Закрываем канал перед выходом
