@@ -13,10 +13,19 @@ from TinvestPy.grpc.stoporders_pb2 import PostStopOrderRequest, StopOrderExpirat
 price: float = 0  # Последняя цена сделки по тикеру
 
 
-def on_last_price(last_price: LastPrice):
+def _on_last_price(last_price: LastPrice):
     global price
     price = tp_provider.quotation_to_float(last_price.price)
     logger.info(f'Цена последней сделки по тикеру {class_code}.{security_code} = {price}')
+
+
+def _on_portfolio(portfolio): logger.info(f'Портфель - {portfolio}')
+
+
+def _on_position(position): logger.info(f'Позиция - {position}')
+
+
+def _on_order_trades(order_trades): logger.info(f'Сделки по заявке - {order_trades}')
 
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
@@ -38,10 +47,10 @@ if __name__ == '__main__':  # Точка входа при запуске это
     min_step = tp_provider.quotation_to_float(si.min_price_increment)  # Шаг цены
 
     # Обработчики подписок
-    tp_provider.on_last_price = on_last_price  # Цена последней сделки
-    tp_provider.on_portfolio = lambda portfolio: logger.info(f'Портфель - {portfolio}')  # Портфель
-    tp_provider.on_position = lambda position: logger.info(f'Позиция - {position}')  # Позиции
-    tp_provider.on_order_trades = lambda order_trades: logger.info(f'Сделки по заявке - {order_trades}')  # Сделки по заявке
+    tp_provider.on_last_price.subscribe(_on_last_price)  # Цена последней сделки
+    tp_provider.on_portfolio.subscribe(_on_portfolio)  # Портфель
+    tp_provider.on_position.subscribe(_on_position)  # Позиции
+    tp_provider.on_order_trades.subscribe(_on_order_trades)  # Сделки по заявке
 
     account_id = tp_provider.accounts[0].id  # Первый счет
 
@@ -126,11 +135,10 @@ if __name__ == '__main__':  # Точка входа при запуске это
             subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_UNSUBSCRIBE,  # отмена подписки
             instruments=(LastPriceInstrument(instrument_id=si.figi),))))  # на тикер
 
-    # Сброс обработчиков подписок
-    tp_provider.on_last_price = tp_provider.default_handler  # Цена последней сделки
-    tp_provider.on_portfolio = tp_provider.default_handler  # Портфель
-    tp_provider.on_position = tp_provider.default_handler  # Позиции
-    tp_provider.on_order_trades = tp_provider.default_handler  # Сделки по заявке
+    tp_provider.on_last_price.unsubscribe(_on_last_price)  # Цена последней сделки
+    tp_provider.on_portfolio.unsubscribe(_on_portfolio)  # Портфель
+    tp_provider.on_position.unsubscribe(_on_position)  # Позиции
+    tp_provider.on_order_trades.unsubscribe(_on_order_trades)  # Сделки по заявке
 
     # Выход
     tp_provider.close_channel()  # Закрываем канал перед выходом
