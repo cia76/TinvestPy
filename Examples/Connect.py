@@ -1,9 +1,19 @@
 import logging  # Выводим лог на консоль и в файл
+from datetime import datetime  # Дата и время
 from threading import Thread  # Запускаем поток подписки
-from datetime import datetime
 
 from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
-from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeCandlesRequest, SubscriptionAction, CandleInstrument, SubscriptionInterval
+from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeCandlesRequest, SubscriptionAction, \
+    CandleInstrument, SubscriptionInterval, Candle
+
+
+def on_new_bar(candle: Candle):  # Обработчик события прихода нового бара
+    logger.info(f'{tp_provider.utc_to_msk_datetime(datetime.fromtimestamp(candle.time.seconds)):%d.%m.%Y %H:%M:%S} '
+                f'O: {tp_provider.quotation_to_float(candle.open)} '
+                f'H: {tp_provider.quotation_to_float(candle.high)} '
+                f'L: {tp_provider.quotation_to_float(candle.low)} '
+                f'C: {tp_provider.quotation_to_float(candle.close)} '
+                f'V: {int(candle.volume)}')
 
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
@@ -17,32 +27,26 @@ if __name__ == '__main__':  # Точка входа при запуске это
                         handlers=[logging.FileHandler('Connect.log', encoding='utf-8'), logging.StreamHandler()])  # Лог записываем в файл и выводим на консоль
     logging.Formatter.converter = lambda *args: datetime.now(tz=tp_provider.tz_msk).timetuple()  # В логе время указываем по МСК
 
-    class_code = 'TQBR'  # Акции ММВБ
-    security_code = 'SBER'  # Тикер
-    # class_code = 'SPBFUT'  # Фьючерсы
-    # security_code = 'SiZ5'  # Формат фьючерса: <Тикер><Месяц экспирации><Последняя цифра года> Месяц экспирации: 3-H, 6-M, 9-U, 12-Z
+    dataname = 'TQBR.SBER'  # Тикер
+    tf = 'M1'  # Временной интервал
 
     # Проверяем работу запрос/ответ
-    logger.info(f'Данные тикера {class_code}.{security_code}')  # Время на сервере приходит в подписках. Поэтому, запросим данные тикера
-    si = tp_provider.get_symbol_info(class_code, security_code)  # Спецификация тикера
-    logger.info(f'Ответ от сервера: {si}' if si else f'Тикер {class_code}.{security_code} не найден')
+    logger.info(f'Данные тикера {dataname}')  # Время на сервере приходит в подписках. Поэтому, запросим данные тикера
+    class_code, symbol = tp_provider.dataname_to_class_code_symbol(dataname)
+    si = tp_provider.get_symbol_info(class_code, symbol)  # Спецификация тикера
+    logger.info(f'Ответ от сервера: {si}' if si else f'Тикер {dataname} не найден')
 
     # Проверяем работу подписок
-    tp_provider.on_candle = lambda candle: logger.info(f'{class_code}.{security_code} (M1) - '
-                                                       f'{tp_provider.utc_to_msk_datetime(datetime.fromtimestamp(candle.time.seconds))} - '
-                                                       f'Open = {tp_provider.quotation_to_float(candle.open)}, '
-                                                       f'High = {tp_provider.quotation_to_float(candle.high)}, '
-                                                       f'Low = {tp_provider.quotation_to_float(candle.low)}, '
-                                                       f'Close = {tp_provider.quotation_to_float(candle.close)}, '
-                                                       f'Volume = {int(candle.volume)}')  # Обработчик новых баров по подписке из Тинькофф
+    logger.info(f'Подписка на {tf} бары тикера {dataname}')
+    tp_provider.on_candle.subscribe(on_new_bar)  # Подписываемся на новые бары
     Thread(target=tp_provider.subscriptions_marketdata_handler, name='SubscriptionsMarketdataThread').start()  # Создаем и запускаем поток обработки подписок сделок по заявке
     tp_provider.subscription_marketdata_queue.put(  # Ставим в буфер команд подписки на биржевую информацию
         MarketDataRequest(subscribe_candles_request=SubscribeCandlesRequest(  # запрос на новые бары
             subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,  # подписка
             instruments=(CandleInstrument(interval=SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE, instrument_id=si.figi),),  # на тикер по временному интервалу 1 минута
             waiting_close=True)))  # по закрытию бара
-    logger.info(f'Тикер {class_code}.{security_code} подписан на новые бары на временнОм интервале 1 минута')
 
     # Выход
     input('Enter - выход\n')
+    tp_provider.on_candle.unsubscribe(on_new_bar)  # Отменяем подписку на новые бары
     tp_provider.close_channel()  # Закрываем канал перед выходом
