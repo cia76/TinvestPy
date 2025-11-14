@@ -2,7 +2,7 @@ import logging  # Выводим лог на консоль и в файл
 from datetime import datetime  # Дата и время
 from threading import Thread  # Запускаем поток подписки
 
-from TinvestPy.TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
 from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeCandlesRequest, SubscriptionAction, CandleInstrument, SubscriptionInterval, Candle
 
 

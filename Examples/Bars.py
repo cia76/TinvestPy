@@ -5,7 +5,7 @@ import os.path
 
 import pandas as pd
 
-from TinvestPy.TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
 from TinvestPy.grpc.marketdata_pb2 import GetCandlesRequest, GetCandlesResponse
 from google.protobuf.json_format import MessageToDict
 

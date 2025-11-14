@@ -4,7 +4,7 @@ from datetime import datetime  # Дата и время
 from time import sleep  # Задержка в секундах перед выполнением операций
 from uuid import uuid4
 
-from TinvestPy.TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
 from TinvestPy.grpc.marketdata_pb2 import LastPrice, MarketDataRequest, SubscribeLastPriceRequest, SubscriptionAction, LastPriceInstrument
 from TinvestPy.grpc.orders_pb2 import ORDER_DIRECTION_BUY, ORDER_DIRECTION_SELL, PostOrderRequest, ORDER_TYPE_MARKET, PostOrderResponse, ORDER_TYPE_LIMIT, CancelOrderRequest, CancelOrderResponse
 from TinvestPy.grpc.stoporders_pb2 import PostStopOrderRequest, StopOrderExpirationType, STOP_ORDER_DIRECTION_BUY, StopOrderType, PostStopOrderResponse, CancelStopOrderRequest, CancelStopOrderResponse
