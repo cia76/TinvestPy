@@ -2,13 +2,12 @@ import logging  # Выводим лог на консоль и в файл
 from datetime import datetime  # Дата и время
 from threading import Thread  # Запускаем поток подписки
 
-from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
-from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeCandlesRequest, SubscriptionAction, \
-    CandleInstrument, SubscriptionInterval, Candle
+from TinvestPy.TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeCandlesRequest, SubscriptionAction, CandleInstrument, SubscriptionInterval, Candle
 
 
 def on_new_bar(candle: Candle):  # Обработчик события прихода нового бара
-    logger.info(f'{tp_provider.utc_to_msk_datetime(datetime.fromtimestamp(candle.time.seconds)):%d.%m.%Y %H:%M:%S} '
+    logger.info(f'{tp_provider.timestamp_to_msk_datetime(candle.time):%d.%m.%Y %H:%M:%S} '
                 f'O: {tp_provider.quotation_to_float(candle.open)} '
                 f'H: {tp_provider.quotation_to_float(candle.high)} '
                 f'L: {tp_provider.quotation_to_float(candle.low)} '

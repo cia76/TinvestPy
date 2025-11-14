@@ -2,7 +2,7 @@ import logging  # Выводим лог на консоль и в файл
 from datetime import datetime  # Дата и время
 from math import log10
 
-from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy.TinvestPy import TinvestPy  # Работа с T-Invest API из Python
 
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта

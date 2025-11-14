@@ -8,18 +8,18 @@ from queue import SimpleQueue  # Очередь подписок/отписок
 
 from google.protobuf.timestamp_pb2 import Timestamp
 
-from .grpc import common_pb2
-from .grpc import instruments_pb2
-from .grpc.instruments_pb2_grpc import InstrumentsServiceStub  # https://developer.tbank.ru/invest/api/instruments-service
-from .grpc import marketdata_pb2
-from .grpc.marketdata_pb2_grpc import MarketDataServiceStub, MarketDataStreamServiceStub  # https://developer.tbank.ru/invest/api/market-data-service
-from .grpc import operations_pb2
-from .grpc.operations_pb2_grpc import OperationsServiceStub, OperationsStreamServiceStub  # https://developer.tbank.ru/invest/api/operations-service
-from .grpc import orders_pb2
-from .grpc.orders_pb2_grpc import OrdersServiceStub, OrdersStreamServiceStub  # https://developer.tbank.ru/invest/api/orders-service
-from .grpc.stoporders_pb2_grpc import StopOrdersServiceStub  # https://developer.tbank.ru/invest/api/stop-orders-service
-from .grpc import users_pb2
-from .grpc.users_pb2_grpc import UsersServiceStub  # https://developer.tbank.ru/invest/api/users-service
+from TinvestPy.grpc import common_pb2
+from TinvestPy.grpc import instruments_pb2
+from TinvestPy.grpc.instruments_pb2_grpc import InstrumentsServiceStub  # https://developer.tbank.ru/invest/api/instruments-service
+from TinvestPy.grpc import marketdata_pb2
+from TinvestPy.grpc.marketdata_pb2_grpc import MarketDataServiceStub, MarketDataStreamServiceStub  # https://developer.tbank.ru/invest/api/market-data-service
+from TinvestPy.grpc import operations_pb2
+from TinvestPy.grpc.operations_pb2_grpc import OperationsServiceStub, OperationsStreamServiceStub  # https://developer.tbank.ru/invest/api/operations-service
+from TinvestPy.grpc import orders_pb2
+from TinvestPy.grpc.orders_pb2_grpc import OrdersServiceStub, OrdersStreamServiceStub  # https://developer.tbank.ru/invest/api/orders-service
+from TinvestPy.grpc.stoporders_pb2_grpc import StopOrdersServiceStub  # https://developer.tbank.ru/invest/api/stop-orders-service
+from TinvestPy.grpc import users_pb2
+from TinvestPy.grpc.users_pb2_grpc import UsersServiceStub  # https://developer.tbank.ru/invest/api/users-service
 
 from pytz import timezone, utc  # Работаем с временнОй зоной и UTC
 from grpc import ssl_channel_credentials, secure_channel, RpcError, StatusCode  # Защищенный канал
@@ -239,7 +239,9 @@ class TinvestPy:
 
     def close_channel(self):
         """Закрытие канала"""
-        self.channel.close()
+        if self.channel is not None:  # Если канал открыт
+            self.channel.close()  # то закрываем канал
+            self.channel = None  # Помечаем канал как закрытый
 
     # Функции конвертации
 

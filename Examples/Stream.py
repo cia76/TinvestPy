@@ -3,7 +3,7 @@ from threading import Thread  # Запускаем поток подписки
 from datetime import datetime  # Дата и время
 from time import sleep  # Подписка на события по времени
 
-from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
+from TinvestPy.TinvestPy import TinvestPy  # Работа с T-Invest API из Python
 from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeOrderBookRequest, SubscriptionAction, \
     OrderBookInstrument, SubscribeLastPriceRequest, LastPriceInstrument, GetOrderBookRequest, GetOrderBookResponse, \
     GetLastPricesRequest, GetLastPricesResponse
