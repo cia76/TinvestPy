@@ -7,7 +7,7 @@ from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeCandlesReq
 
 
 def on_new_bar(candle: Candle):  # Обработчик события прихода нового бара
-    logger.info(f'{tp_provider.timestamp_to_msk_datetime(candle.time):%d.%m.%Y %H:%M:%S} '
+    logger.info(f'{tp_provider.google_timestamp_to_msk_datetime(candle.time):%d.%m.%Y %H:%M:%S} '
                 f'O: {tp_provider.quotation_to_float(candle.open)} '
                 f'H: {tp_provider.quotation_to_float(candle.high)} '
                 f'L: {tp_provider.quotation_to_float(candle.low)} '
@@ -17,8 +17,8 @@ def on_new_bar(candle: Candle):  # Обработчик события прих�
 
 if __name__ == '__main__':  # Точка входа при запуске этого скрипта
     logger = logging.getLogger('TinvestPy.Connect')  # Будем вести лог
+    # tp_provider = TinvestPy('<Токен>')  # При первом подключении нужно передать токен
     tp_provider = TinvestPy()  # Подключаемся ко всем торговым счетам
-    # tp_provider = TinvestPy(demo=True)  # Подключаемся к демо счетам
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Формат сообщения
                         datefmt='%d.%m.%Y %H:%M:%S',  # Формат даты
