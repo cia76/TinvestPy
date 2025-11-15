@@ -1,11 +1,11 @@
-from datetime import datetime, timedelta, UTC
 import logging  # Выводим лог на консоль и в файл
-import os
-import pickle  # Хранение торгового токена
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo  # ВременнАя зона
 from typing import Any  # Любой тип
 from time import sleep
 from queue import SimpleQueue  # Очередь подписок/отписок
 
+import keyring  # Безопасное хранение торгового токена
 from google.protobuf.timestamp_pb2 import Timestamp
 
 from .grpc import common_pb2
@@ -21,7 +21,6 @@ from .grpc.stoporders_pb2_grpc import StopOrdersServiceStub  # https://developer
 from .grpc import users_pb2
 from .grpc.users_pb2_grpc import UsersServiceStub  # https://developer.tbank.ru/invest/api/users-service
 
-from pytz import timezone, utc  # Работаем с временнОй зоной и UTC
 from grpc import ssl_channel_credentials, secure_channel, RpcError, StatusCode  # Защищенный канал
 
 
@@ -30,7 +29,7 @@ class TinvestPy:
     """Работа с T-Invest API https://developer.tbank.ru/invest/api из Python
     Генерация кода в папку grpc осуществлена из proto контрактов: https://github.com/RussianInvestments/investAPI/tree/main/src/docs/contracts
     """
-    tz_msk = timezone('Europe/Moscow')  # Время UTC будем приводить к московскому времени
+    tz_msk = ZoneInfo('Europe/Moscow')  # Время UTC будем приводить к московскому времени
     server = 'invest-public-api.tinkoff.ru:443'  # Торговый сервер
     server_demo = 'sandbox-invest-public-api.tinkoff.ru:443'  # Демо сервер (песочница)
     currency: operations_pb2.PortfolioRequest.CurrencyRequest = operations_pb2.PortfolioRequest.CurrencyRequest.RUB  # Суммы будем получать в российских рублях
@@ -41,16 +40,12 @@ class TinvestPy:
 
         :param str token: Токен
         """
-        config_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.pkl')  # Полный путь к файлу конфигурации
         if token is None:  # Если токен не указан
-            try:
-                with open(config_filename, 'rb') as file:  # Пытаемся открыть файл конфигурации
-                    token = pickle.load(file)
-            except IOError:
-                self.logger.fatal('Токен не найден')
+            token = keyring.get_password('TinvestPy', 'token')  # то пробуем получить его из системного хранилища
+            if token is None:  # Если токен не найден
+                self.logger.fatal('Токен не найден в системном хранилище. Вызовите tp_provider = TinvestPy(''<Токен>'')')
         else:  # Если указан токен
-            with open(config_filename, 'wb') as file:  # Создаем файл конфигурации
-                pickle.dump(token, file)
+            keyring.set_password('TinvestPy', 'token', token)  # Сохраняем токен в системном хранилище
         self.metadata = (('authorization', f'Bearer {token}'),)  # Токен доступа
         self.channel = secure_channel(self.server_demo if demo else self.server, ssl_channel_credentials())  # Защищенный канал
 
@@ -575,27 +570,40 @@ class TinvestPy:
 
         :param datetime dt: Московское время
         :return: Кол-во секунд, прошедших с 01.01.1970 00:00 UTC
+        :rtype: int
         """
-        dt_msk = self.tz_msk.localize(dt)  # Заданное время ставим в зону МСК
+        dt_msk = dt.replace(tzinfo=self.tz_msk)  # Заданное время ставим в зону МСК
         return int(dt_msk.timestamp())  # Переводим в кол-во секунд, прошедших с 01.01.1970 в UTC
 
-    def timestamp_to_msk_datetime(self, timestamp) -> datetime:
-        """Перевод времени из Google UTC Timestamp в московское
+    def timestamp_to_msk_datetime(self, seconds) -> datetime:
+        """Перевод кол-ва секунд, прошедших с 01.01.1970 00:00 UTC, в московское время
 
-        :param Timestamp timestamp: Время Google UTC Timestamp
-        :return: Московское время
+        :param int seconds: Кол-во секунд, прошедших с 01.01.1970 00:00 UTC
+        :return: Московское время без временнОй зоны
+        :rtype: datetime
         """
-        dt_utc = datetime.fromtimestamp(timestamp.seconds + timestamp.nanos / 1_000_000_000, UTC)  # Переводим кол-во секунд, прошедших с 01.01.1970 в UTC
-        return self.utc_to_msk_datetime(dt_utc)  # Переводим время из UTC в московское
+        dt_utc = datetime.fromtimestamp(seconds, timezone.utc)  # Переводим кол-во секунд, прошедших с 01.01.1970 в UTC
+        return dt_utc.astimezone(self.tz_msk).replace(tzinfo=None)  # Заданное время ставим в зону МСК. Убираем временнУю зону
 
     def msk_datetime_to_google_timestamp(self, dt) -> Timestamp:
         """Перевод московского времени в Google UTC Timestamp
 
         :param datetime dt: Московское время
         :return: Время Google UTC Timestamp
+        :rtype: Timestamp
         """
-        dt_msk = self.tz_msk.localize(dt)  # Заданное время ставим в зону МСК
+        dt_msk = dt.replace(tzinfo=self.tz_msk)  # Заданное время ставим в зону МСК
         return Timestamp(seconds=int(dt_msk.timestamp()), nanos=dt_msk.microsecond * 1_000)
+
+    def google_timestamp_to_msk_datetime(self, timestamp) -> datetime:
+        """Перевод времени из Google UTC Timestamp в московское
+
+        :param Timestamp timestamp: Время Google UTC Timestamp
+        :return: Московское время
+        :rtype: datetime
+        """
+        dt_utc = datetime.fromtimestamp(timestamp.seconds + timestamp.nanos / 1_000_000_000, timezone.utc)  # Переводим кол-во секунд, прошедших с 01.01.1970 в UTC
+        return dt_utc.astimezone(self.tz_msk).replace(tzinfo=None)  # Заданное время ставим в зону МСК. Убираем временнУю зону
 
     def msk_to_utc_datetime(self, dt, tzinfo=False) -> datetime:
         """Перевод времени из московского в UTC
@@ -603,9 +611,10 @@ class TinvestPy:
         :param datetime dt: Московское время
         :param bool tzinfo: Отображать временнУю зону
         :return: Время UTC
+        :rtype: datetime
         """
-        dt_msk = self.tz_msk.localize(dt)  # Заданное время ставим в зону МСК
-        dt_utc = dt_msk.astimezone(utc)  # Переводим в UTC
+        dt_msk = dt.replace(tzinfo=self.tz_msk)  # Заданное время ставим в зону МСК
+        dt_utc = dt_msk.astimezone(timezone.utc)  # Переводим в зону UTC
         return dt_utc if tzinfo else dt_utc.replace(tzinfo=None)
 
     def utc_to_msk_datetime(self, dt, tzinfo=False) -> datetime:
@@ -614,9 +623,10 @@ class TinvestPy:
         :param datetime dt: Время UTC
         :param bool tzinfo: Отображать временнУю зону
         :return: Московское время
+        :rtype: datetime
         """
-        dt_utc = utc.localize(dt) if dt.tzinfo is None else dt  # Задаем временнУю зону UTC если не задана
-        dt_msk = dt_utc.astimezone(self.tz_msk)  # Переводим в МСК
+        dt_utc = dt.replace(tzinfo=timezone.utc)  # Заданное время ставим в зону UTC
+        dt_msk = dt_utc.astimezone(self.tz_msk)  # Переводим в зону МСК
         return dt_msk if tzinfo else dt_msk.replace(tzinfo=None)
 
     def set_time_delta(self, timestamp: Timestamp):
@@ -624,7 +634,7 @@ class TinvestPy:
 
         :param Timestamp timestamp: Текущее время на сервере в формате Google UTC Timestamp
         """
-        self.time_delta = datetime.fromtimestamp(timestamp.seconds, UTC) - datetime.now(UTC)
+        self.time_delta = datetime.fromtimestamp(timestamp.seconds, timezone.utc) - datetime.now(timezone.utc)
 
 
 class Event:
