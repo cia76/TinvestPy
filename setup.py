@@ -7,7 +7,7 @@ setup(name='TinvestPy',
       url='https://github.com/cia76/TinvestPy',
       packages=find_packages(),
       install_requires=[
-            'pytz',  # ВременнЫе зоны
+            'keyring',  # Безопасное хранение торгового токена
             'grpcio',  # gRPC
             'protobuf',  # proto
             'googleapis-common-protos',  # Google API
