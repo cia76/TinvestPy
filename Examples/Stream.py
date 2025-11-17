@@ -6,17 +6,17 @@ from time import sleep  # Подписка на события по времен
 from TinvestPy import TinvestPy  # Работа с T-Invest API из Python
 from TinvestPy.grpc.marketdata_pb2 import MarketDataRequest, SubscribeOrderBookRequest, SubscriptionAction, \
     OrderBookInstrument, SubscribeLastPriceRequest, LastPriceInstrument, GetOrderBookRequest, GetOrderBookResponse, \
-    GetLastPricesRequest, GetLastPricesResponse
+    GetLastPricesRequest, GetLastPricesResponse, OrderBook, LastPrice
 
 
-def _on_order_book(order_book):
+def _on_order_book(order_book: OrderBook):
     logger.info(f'Стакан - '
-                f'figi = {order_book.instrument_id} '
+                f'figi = {order_book.figi} '
                 f'ask = {tp_provider.quotation_to_float(order_book.asks[0].price)} '
                 f'bid = {tp_provider.quotation_to_float(order_book.bids[0].price)}')
 
 
-def _on_last_price(last_price):
+def _on_last_price(last_price: LastPrice):
     logger.info(f'Котировка - {tp_provider.quotation_to_float(last_price.price)}')
 
 
