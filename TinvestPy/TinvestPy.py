@@ -87,14 +87,15 @@ class TinvestPy:
 
     def call_function(self, func, request):
         """Вызов функции"""
-        self.logger.debug(f'Запрос : {request}')
+        # noinspection PyProtectedMember
+        func_name = func._method.decode('utf-8')  # Название функции
+        self.logger.debug(f'Запрос : {func_name}({request})')
         while True:  # Пока не получим ответ или ошибку
             try:  # Пытаемся
                 response, call = func.with_call(request=request, metadata=self.metadata)  # вызвать функцию
                 self.logger.debug(f'Ответ  : {response}')
                 return response  # и вернуть ответ
             except RpcError as ex:  # Если получили ошибку канала
-                func_name = func._method.decode('utf-8')  # Название функции
                 details = ex.args[0].details  # Сообщение об ошибке
                 if ex.args[0].code == StatusCode.RESOURCE_EXHAUSTED:  # Превышено кол-во запросов в минуту
                     sleep_seconds = 60 - datetime.now().second + self.time_delta.total_seconds()  # Время в секундах до начала следующей минуты с учетом разницы локального времени и времени торгового сервера
