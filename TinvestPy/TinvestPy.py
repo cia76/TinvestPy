@@ -504,17 +504,29 @@ class TinvestPy:
         tinvest_price = tinvest_price // min_step * min_step  # Цена кратная шагу цены
         request = instruments_pb2.InstrumentRequest(id_type=instruments_pb2.InstrumentIdType.INSTRUMENT_ID_TYPE_TICKER, class_code=class_code, id=symbol)  # Поиск тикера по коду режима торгов/названию
         if si.instrument_kind == common_pb2.INSTRUMENT_TYPE_BOND:  # Для облигаций
-            bonds_response: instruments_pb2.BondsResponse = self.call_function(self.stub_instruments.BondBy, request)  # Получаем информацию об облигации
+            if si.figi in self.bonds.keys():  # Если уже получили информацию об облигации
+                bonds_response = self.bonds[si.figi]  # то берем ее
+            else:  # Если еще не получали
+                bonds_response: instruments_pb2.BondsResponse = self.call_function(self.stub_instruments.BondBy, request)  # Получаем информацию об облигации
+                self.bonds[si.figi] = bonds_response  # Сохраняем ее для будущих вычислений
             instrument = bonds_response.instrument  # Информация об облигации
             return tinvest_price / 100 * self.money_value_to_float(instrument.nominal)  # Пункты цены для котировок облигаций представляют собой проценты номинала облигации
         if si.instrument_kind == common_pb2.INSTRUMENT_TYPE_CURRENCY:  # Для валют
-            currency_response: instruments_pb2.CurrencyResponse = self.call_function(self.stub_instruments.CurrencyBy, request)  # Получаем информацию о валюте
+            if si.figi in self.currencies.keys():  # Если уже получили информацию о валюте
+                currency_response = self.currencies[si.figi]  # то берем ее
+            else:  # Если еще не получали
+                currency_response: instruments_pb2.CurrencyResponse = self.call_function(self.stub_instruments.CurrencyBy, request)  # Получаем информацию о валюте
+                self.currencies[si.figi] = currency_response  # Сохраняем ее для будущих вычислений
             instrument = currency_response.instrument  # Информация о валюте
             return tinvest_price * si.lot / self.money_value_to_float(instrument.nominal)
         if si.instrument_kind == common_pb2.INSTRUMENT_TYPE_FUTURES:  # Для фьючерсов
-            futures_response: instruments_pb2.FutureResponse = self.call_function(self.stub_instruments.FutureBy, request)  # Получаем информацию о фьючерсе
-            margin_request = instruments_pb2.GetFuturesMarginRequest(figi=si.figi)  # Запрос маржи
-            margin_response: instruments_pb2.GetFuturesMarginResponse = self.call_function(self.stub_instruments.GetFuturesMargin, margin_request)  # Получаем информацию ГО по фьючерсу
+            if si.figi in self.futures.keys():  # Если уже получили информацию о фьючерсе
+                futures_response, margin_response = self.futures[si.figi]  # то берем ее
+            else:  # Если еще не получали
+                futures_response: instruments_pb2.FutureResponse = self.call_function(self.stub_instruments.FutureBy, request)  # Получаем информацию о фьючерсе
+                margin_request = instruments_pb2.GetFuturesMarginRequest(figi=si.figi)  # Запрос маржи
+                margin_response: instruments_pb2.GetFuturesMarginResponse = self.call_function(self.stub_instruments.GetFuturesMargin, margin_request)  # Получаем информацию ГО по фьючерсу
+                self.futures[si.figi] = (futures_response, margin_response)  # Сохраняем ее для будущих вычислений
             return tinvest_price / self.quotation_to_float(futures_response.instrument.min_price_increment) * self.quotation_to_float(margin_response.min_price_increment_amount)  # Стоимость фьючерсов предоставляется в пунктах
         return tinvest_price  # В остальных случаях цена не изменяется
 
