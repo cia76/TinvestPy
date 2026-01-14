@@ -59,6 +59,8 @@ class TinvestPy:
         self.stub_stop_orders = StopOrdersServiceStub(self.channel)  # Стоп заявки
 
         # Сервисы подписок, буферы команд, потоки обработки, события
+        self.on_ping = Event()  # Время сервера
+
         self.stub_marketdata_stream = MarketDataStreamServiceStub(self.channel)  # Биржевая информация
         self.subscription_marketdata_queue: SimpleQueue[marketdata_pb2.MarketDataRequest] = SimpleQueue()  # Буфер команд
         self.marketdata_thread = None  # Поток обработки событий
@@ -141,6 +143,7 @@ class TinvestPy:
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
                     self.set_time_delta(e.ping.time)  # Обновляем разницу между локальным временем и временем сервера
+                    self.on_ping.trigger(dt)
         except RpcError:  # При закрытии канала попадем на эту ошибку (grpc._channel._MultiThreadedRendezvous)
             pass  # Все в порядке, ничего делать не нужно
 
@@ -168,6 +171,7 @@ class TinvestPy:
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_marketdata_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
                     self.set_time_delta(e.ping.time)  # Обновляем разницу между локальным временем и временем сервера
+                    self.on_ping.trigger(dt)
         except RpcError:  # При закрытии канала попадем на эту ошибку (grpc._channel._MultiThreadedRendezvous)
             pass  # Все в порядке, ничего делать не нужно
 
@@ -182,6 +186,8 @@ class TinvestPy:
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_portfolio_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
+                    self.set_time_delta(e.ping.time)  # Обновляем разницу между локальным временем и временем сервера
+                    self.on_ping.trigger(dt)
         except RpcError:  # При закрытии канала попадем на эту ошибку (grpc._channel._MultiThreadedRendezvous)
             pass  # Все в порядке, ничего делать не нужно
 
@@ -196,6 +202,8 @@ class TinvestPy:
                 if e.ping != common_pb2.Ping():  # Проверка канала со стороны T-Invest. Получаем время сервера
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_positions_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
+                    self.set_time_delta(e.ping.time)  # Обновляем разницу между локальным временем и временем сервера
+                    self.on_ping.trigger(dt)
         except RpcError:  # При закрытии канала попадем на эту ошибку (grpc._channel._MultiThreadedRendezvous)
             pass  # Все в порядке, ничего делать не нужно
 
@@ -211,6 +219,7 @@ class TinvestPy:
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_trades_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
                     self.set_time_delta(e.ping.time)  # Обновляем разницу между локальным временем и временем сервера
+                    self.on_ping.trigger(dt)
         except RpcError:  # При закрытии канала попадем на эту ошибку (grpc._channel._MultiThreadedRendezvous)
             pass  # Все в порядке, ничего делать не нужно
 
@@ -226,6 +235,7 @@ class TinvestPy:
                     dt = self.utc_to_msk_datetime(datetime.fromtimestamp(e.ping.time.seconds))
                     self.logger.debug(f'subscriptions_trades_handler: Пришло время сервера {dt:%d.%m.%Y %H:%M}')
                     self.set_time_delta(e.ping.time)  # Обновляем разницу между локальным временем и временем сервера
+                    self.on_ping.trigger(dt)
         except RpcError:  # При закрытии канала попадем на эту ошибку (grpc._channel._MultiThreadedRendezvous)
             pass  # Все в порядке, ничего делать не нужно
 

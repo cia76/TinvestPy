@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='TinvestPy',
-      version='1.42',
+      version='1.42.2026.01.01',
       author='Чечет Игорь Александрович',
       description='Библиотека-обертка, которая позволяет работать с T-Invest API брокера Т-Инвестиции из Python',
       url='https://github.com/cia76/TinvestPy',
