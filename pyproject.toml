@@ -8,13 +8,12 @@ version = "1.42.2026.01.01"
 description = "Библиотека-обертка, которая позволяет работать с T-Invest API брокера Т-Инвестиции из Python"
 readme = "README.md"
 requires-python = ">=3.12"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
   {name = "Чечет Игорь Александрович"}
 ]
 classifiers = [
   "Programming Language :: Python :: 3.12",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Intended Audience :: Developers",
   "Topic :: Office/Business :: Financial :: Investment"
@@ -30,6 +29,9 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/cia76/TinvestPy"
 Repository = "https://github.com/cia76/TinvestPy"
+
+[tool.setuptools]
+packages = ["TinvestPy"]
 
 [tool.setuptools.package-data]
 "TinvestPy" = ["grpc/**/*"]

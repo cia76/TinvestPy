@@ -58,14 +58,34 @@ for account in accounts:
 - Токен сохраняется в защищенном системном хранилище (keyring)
 
 ### 📚 Способ 2: Как проект с примерами (полное клонирование)
+
+**🪟 Пользователям ОС Windows**
+
+⚠️ Настоятельно рекомендуется использовать Linux/Ubuntu/MacOS.
+Все команды Makefile разработаны и протестированы в Unix-среде.
+В Windows возможны проблемы с путями, переносом строк и работой shell-скриптов.
+Для лучшего опыта используйте WSL-виртуальную машину или перейдите на Linux/Mac.
+
+Лучшее решение для Windows — вы получаете полноценный Linux прямо в Windows:
+```powershell
+# 1. Установите WSL (выполнить в PowerShell от имени Администратора)
+wsl --install
+
+# 2. Перезагрузите компьютер
+# 3. Запустите Ubuntu из меню Пуск
+# 4. В терминале Ubuntu выполните:
+sudo apt update
+sudo apt install make python3 python3-pip python3-venv git
+
+# 5. Смотритре документацию ниже.
+```
+
+**🐧/🍎 Пользователям ОС Linux/Ubuntu/MacOS**
+
 **Для тех, кто хочет изучать библиотеку, запускать примеры и модифицировать код:**
  ```bash
 # 1. Установите UV (современный менеджер Python-пакетов)
-# Linux/Mac
 curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Windows (PowerShell)
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 # Или через pip (если Python уже установлен)
 pip install uv
@@ -74,16 +94,17 @@ pip install uv
 git clone https://github.com/cia76/TinvestPy.git
 cd TinvestPy
 
-# 3. Создайте виртуальное окружение с помощью Makefile
+# 3. Создайте виртуальное окружение
 make venv
 
- # 4. Активируйте окружение (если make venv не сделал это автоматически)
-source .venv/bin/activate  # Linux/Mac
-# или
-.venv\Scripts\activate     # Windows
+ # 4. Активируйте окружение
+source .venv/bin/activate
 
 # 5. Установите пакет и зависимости
 make install
+
+# 6. Выполните команду для установки токена и проверки работы запросов/ответов и подписок  
+make run-connect
  ```
 
 **После клонирования вы получите:**:
@@ -95,12 +116,12 @@ make install
 **Запуск примеров:**
 ```bash
 # Все примеры доступны через Makefile
-make run-accounts     # Accounts.py (Подключение ко всем торговым счетам)
-make run-bars         # Bars.py (Получение бар от брокера)
-make run-connect      # Connect.py (Проверка работы подписок)
+make run-connect      # Connect.py (Ввод токена и проверка работы запросов/ответов и подписок)
+make run-ticker       # Ticker.py (Спецификация тикера)
+make run-bars         # Bars.py (История тикера)
+make run-accounts     # Accounts.py (Все торговые счета, позиции и заявки)
 make run-stream       # Stream.py (Подписка на котировки)
-make run-ticker       # Ticker.py (Загрузка исторических данных)
-make run-transactions # Transactions.py (Запуск тестовой торговой системы)
+make run-transactions # Transactions.py (Постановка и снятие заявок)
 
 # Показать все доступные команды
 make help
@@ -131,13 +152,19 @@ provider = TinvestPy()
 ```
 
 **Если выбрали Способ 2 (проект с примерами):**
-1. Откройте файл Examples/Accounts.py
-2. Найдите строку tp_provider = TinvestPy()
-3. Замените ее на tp_provider = TinvestPy('ВАШ_ТОКЕН_ЗДЕСЬ')
-4. Запустите: make run-accounts
-5. После первого запуска можно вернуть tp_provider = TinvestPy()
+```bash
+# 1. Создайте виртуальное окружение
+make venv
 
-**Важно:** При первом запуске с токеном он сохраняется в защищенном системном хранилище (keyring). После этого можно использовать TinvestPy() без явного указания токена.
+ # 2. Активируйте окружение
+source .venv/bin/activate
+
+# 3. Установите пакет и зависимости
+make install
+
+# 4. Выполните команду для установки токена и проверки работы запросов/ответов и подписок  
+make run-connect
+```
 
 ## 📁 Структура проекта
 ```text
@@ -148,12 +175,12 @@ TinvestPy/
 │   ├── grpc/            # gRPC файлы
 │   └── ...              # Остальные модули
 ├── Examples/            # Примеры использования (только при клонировании)
-│   ├── Accounts.py      # Работа с аккаунтами
-│   ├── Bars.py          # Исторические данные
-│   ├── Connect.py       # Тест подключения
-│   ├── Stream.py        # Потоковые данные
-│   ├── Ticker.py        # Информация о тикерах
-│   └── Transactions.py  # Торговые операции
+│   ├── Accounts.py      # Все торговые счета, позиции и заявки
+│   ├── Bars.py          # История тикера
+│   ├── Connect.py       # Ввод токена и проверка работы запросов/ответов и подписок
+│   ├── Stream.py        # Подписка на котировки
+│   ├── Ticker.py        # Спецификация тикера
+│   └── Transactions.py  # Постановка и снятие заявок
 ├── Makefile             # Утилиты для работы
 └── README.md            # Документация
 ```
@@ -163,18 +190,17 @@ TinvestPy/
 # Основные команды:
 make venv             # Создать виртуальное окружение
 make install          # Установить пакет и зависимости
-make deactivate       # Деактивировать виртуальное окружение
+make update           # Обновить пакет из GitHub до актуальной версии
 
 # Запуск примеров:
-make run-accounts     # Accounts.py (Подключение ко всем торговым счетам)
-make run-bars         # Bars.py (Получение бар от брокера)
-make run-connect      # Connect.py (Проверка работы подписок)
+make run-connect      # Connect.py (Ввод токена и проверка работы запросов/ответов и подписок)
+make run-ticker       # Ticker.py (Спецификация тикера)
+make run-bars         # Bars.py (История тикера)
+make run-accounts     # Accounts.py (Все торговые счета, позиции и заявки)
 make run-stream       # Stream.py (Подписка на котировки)
-make run-ticker       # Ticker.py (Загрузка исторических данных)
-make run-transactions # Transactions.py (Запуск тестовой торговой системы)
+make run-transactions # Transactions.py (Постановка и снятие заявок)
 
 # Вспомогательные команды:
-make update           # Обновить пакет из GitHub
 make clean            # Очистка временных файлов и сборок
 make info             # Информация о проекте
 
