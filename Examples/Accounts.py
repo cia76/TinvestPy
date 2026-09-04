@@ -22,13 +22,27 @@ if __name__ == '__main__':  # Точка входа при запуске это
         request = PortfolioRequest(account_id=account.id, currency=tp_provider.currency)
         response: PortfolioResponse = tp_provider.call_function(tp_provider.stub_operations.GetPortfolio, request)  # Получаем портфель по счету
         for position in response.positions:  # Пробегаемся по всем активным позициям счета
-            instrument = tp_provider.figi_to_symbol_info(position.figi)  # Поиск тикера по уникальному коду
-            if instrument.class_code == 'CETS':  # Валюты
-                continue  # за позиции не считаем
+            if position.instrument_type == 'option':  # Для опционов нет спецификации тикеров
+                class_code = 'ROPD'  # поэтому, режим торгов,
+                sec_code = position.ticker  # название тикера
+                description = sec_code  # и описание берем из позиции
+            else:  # Для остальных тикеров есть спецификация
+                if not position.figi:  # Если тикер не найден,
+                    class_code = 'Блок' # Режим торгов
+                    sec_code = position.ticker  # Название тикера
+                    description = position.instrument_uid  # Описание
+                else:  # Тикер найден
+                    instrument = tp_provider.figi_to_symbol_info(position.figi)  # Поиск тикера по уникальному коду
+                    if instrument.class_code == 'CETS':  # Если тикер не является валютой
+                        continue  # то за позицию не считаем
+                    else:  # Для остальных случаев
+                        class_code = instrument.class_code  # Режим торгов
+                        sec_code = instrument.ticker  # Название тикера
+                        description = instrument.name  # Описание
             size = int(tp_provider.quotation_to_float(position.quantity))  # Кол-во в штуках
             entry_price = tp_provider.money_value_to_float(position.average_position_price)  # Цена входа
             last_price = tp_provider.money_value_to_float(position.current_price)  # Последняя цена
-            logger.info(f'- Позиция {instrument.class_code}.{instrument.ticker} ({instrument.name}) {size} @ {entry_price} / {last_price}')
+            logger.info(f'- Позиция {class_code}.{sec_code} ({description}) {size} @ {entry_price} / {last_price}')
         portfolio_amount = tp_provider.money_value_to_float(response.total_amount_portfolio)  # Оценка портфеля
         currencies_amount = tp_provider.money_value_to_float(response.total_amount_currencies)  # Свободные средства
         logger.info(f'- Позиции {(portfolio_amount - currencies_amount)} + Свободные средства {currencies_amount} = {portfolio_amount}')
