@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "TinvestPy"
-version = "2026.08.01"
+version = "2026.08.02"
 description = "Библиотека-обертка, которая позволяет работать с T-Invest API брокера Т-Инвестиции из Python"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -36,4 +36,4 @@ Repository = "https://github.com/cia76/TinvestPy"
 packages = ["TinvestPy"]
 
 [tool.setuptools.package-data]
-"TinvestPy" = ["grpc/*"]
+"TinvestPy" = ["*", "grpc/*"]
