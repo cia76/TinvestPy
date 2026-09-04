@@ -1,4 +1,5 @@
 import logging  # Выводим лог на консоль и в файл
+from os import path
 from datetime import datetime, timedelta, timezone
 from math import log10
 from zoneinfo import ZoneInfo  # ВременнАя зона
@@ -31,8 +32,8 @@ class TinvestPy:
     Генерация кода в папку grpc осуществлена из proto контрактов: https://github.com/RussianInvestments/investAPI/tree/main/src/docs/contracts
     """
     tz_msk = ZoneInfo('Europe/Moscow')  # Время UTC будем приводить к московскому времени
-    server = 'invest-public-api.tinkoff.ru:443'  # Торговый сервер
-    server_demo = 'sandbox-invest-public-api.tinkoff.ru:443'  # Демо сервер (песочница)
+    server = 'invest-public-api.tbank.ru:443'  # Торговый сервер
+    server_demo = 'sandbox-invest-public-api.tbank.ru:443' # Демо сервер (песочница)
     currency: operations_pb2.PortfolioRequest.CurrencyRequest = operations_pb2.PortfolioRequest.CurrencyRequest.RUB  # Суммы будем получать в российских рублях
     logger = logging.getLogger('TinvestPy')  # Будем вести лог
 
@@ -48,7 +49,10 @@ class TinvestPy:
         else:  # Если указан токен
             keyring.set_password('TinvestPy', 'token', token)  # Сохраняем токен в системном хранилище
         self.metadata = (('authorization', f'Bearer {token}'),)  # Токен доступа
-        self.channel = secure_channel(self.server_demo if demo else self.server, ssl_channel_credentials())  # Защищенный канал
+        current_dir = path.dirname(path.abspath(__file__))  # Текущий каталог. В нем хранится корневой сертификат МинЦифры
+        with open(path.join(current_dir, 'Russian_Trusted_Root_CA.cer'), 'rb') as f:  # Будем читать сертификат в виде bytes
+            root_certificate = f.read()  # Читаем сертификат
+        self.channel = secure_channel(self.server_demo if demo else self.server, ssl_channel_credentials(root_certificate))  # Защищенный канал
 
         # Сервисы запросов
         self.stub_users = UsersServiceStub(self.channel)  # Счета
